@@ -3,9 +3,10 @@ package domain
 type ErrorCode string
 
 const (
-	CodeIncedentExists    ErrorCode = "INCEDENT_EXISTS"
+	CodeIncidentExists    ErrorCode = "INCIDENT_EXISTS"
 	CodeInvalidRequest    ErrorCode = "INVALID_REQUEST"
 	CodeInvalidValidation ErrorCode = "INVALID_VALIDATION"
+	CodeNotFound          ErrorCode = "NOT_FOUND"
 )
 
 type AppError struct {
@@ -21,7 +22,7 @@ func (e *AppError) Error() string {
 }
 
 func ErrIncedentExists() error {
-	return &AppError{Code: CodeIncedentExists, Message: "incedent_title already exists"}
+	return &AppError{Code: CodeIncidentExists, Message: "incedent_title already exists"}
 }
 
 func ErrInvalidRequest(msg string) error {
@@ -30,4 +31,8 @@ func ErrInvalidRequest(msg string) error {
 
 func ErrInvalidValidation(msg string) error {
 	return &AppError{Code: CodeInvalidValidation, Message: msg}
+}
+
+func ErrNotFound(msg string) error {
+	return &AppError{Code: CodeNotFound, Message: msg}
 }

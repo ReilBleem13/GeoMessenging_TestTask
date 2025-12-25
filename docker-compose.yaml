@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    container_name: pr_service
+    container_name: geo_messenging
     env_file:
       - .env
     depends_on:

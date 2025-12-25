@@ -24,5 +24,5 @@ type changeIncedentJSON struct {
 // Responses
 
 type incedentRequestResponse struct {
-	Incendent *domain.Incedent `json:"Incedent"`
+	Incendent *domain.Incident `json:"Incedent"`
 }

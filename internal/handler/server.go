@@ -22,7 +22,9 @@ func NewRouter(svc *service.Service, logger service.LoggerInterfaces) *http.Serv
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/api/v1/incidents", h.handleCreateIncedent)
+	mux.HandleFunc("POST /api/v1/incidents", h.handleCreateIncident)
+	mux.HandleFunc("GET /api/v1/incidents/{id}", h.handleGetIncidentByID)
+	mux.HandleFunc("GET /api/v1/incidents", h.handlePaginate)
 	return mux
 }
 

@@ -6,7 +6,9 @@ import (
 )
 
 type IncedentRepositoryInterface interface {
-	Create(ctx context.Context, incedent *domain.Incedent) error
+	Create(ctx context.Context, incedent *domain.Incident) error
+	GetByID(ctx context.Context, id int) (*domain.Incident, error)
+	Paginate(ctx context.Context, limit, offset int) ([]domain.Incident, int, error)
 }
 
 type LoggerInterfaces interface {

@@ -43,7 +43,7 @@ func main() {
 	}
 	defer db.Close()
 
-	incedentService := repository.NewIncedentRepository(db.Client())
+	incedentService := repository.NewIncidentRepository(db.Client())
 
 	svc := service.NewService(incedentService, logger)
 

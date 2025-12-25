@@ -2,7 +2,7 @@ package service
 
 import "red_collar/internal/domain"
 
-func mapCreateIncedentInputToDomain(in *CreateIncedentRequestInput) *domain.Incedent {
+func mapCreateIncedentInputToDomain(in *CreateIncedentRequestInput) *domain.Incident {
 	desc := ""
 	if in.Description != nil {
 		desc = *in.Description
@@ -13,7 +13,7 @@ func mapCreateIncedentInputToDomain(in *CreateIncedentRequestInput) *domain.Ince
 		active = *in.Active
 	}
 
-	return &domain.Incedent{
+	return &domain.Incident{
 		Title:       in.Title,
 		Description: desc,
 		Lat:         in.Lat,
