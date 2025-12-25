@@ -26,6 +26,7 @@ func writeAPIResponse(w http.ResponseWriter, status int, code, message string) {
 	resp := apiErrorResponse{}
 	resp.Error.Code = code
 	resp.Error.Message = message
+	writeJSON(w, status, resp)
 }
 
 func (h *Handler) WriteError(w http.ResponseWriter, err error) {
@@ -48,10 +49,11 @@ func (h *Handler) WriteError(w http.ResponseWriter, err error) {
 
 func statusFromCode(code domain.ErrorCode) int {
 	switch code {
+	case domain.CodeInvalidRequest, domain.CodeInvalidValidation:
+		return 400
 	case domain.CodeIncedentExists:
-		return http.StatusBadRequest
+		return 409
 	default:
 		return 503
-		// подумать
 	}
 }

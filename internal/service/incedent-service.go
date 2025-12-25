@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
+	"red_collar/internal/domain"
 
 	"github.com/theartofdevel/logging"
 )
 
-func (s *Service) CreateIncedent(ctx context.Context, in *CreateIncedentRequestInput) (*CreateIncedentOutput, error) {
+func (s *Service) CreateIncedent(ctx context.Context, in *CreateIncedentRequestInput) (*domain.Incedent, error) {
 	if err := validateCreateIncedentInput(in); err != nil {
 		s.logger.Error("create incedent request validation failed",
 			logging.StringAttr("title", in.Title),
@@ -31,12 +32,8 @@ func (s *Service) CreateIncedent(ctx context.Context, in *CreateIncedentRequestI
 		return nil, err
 	}
 
-	out := &CreateIncedentOutput{
-		Incedent: mapDomainIncedentToDTO(incedent),
-	}
-
 	s.logger.Info("incedent was successfully created",
 		logging.StringAttr("title", in.Title),
 	)
-	return out, nil
+	return incedent, nil
 }

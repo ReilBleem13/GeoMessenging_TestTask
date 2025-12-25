@@ -3,8 +3,9 @@ package domain
 type ErrorCode string
 
 const (
-	CodeIncedentExists ErrorCode = "INCEDENT_EXISTS"
-	CodeInvalidRequest ErrorCode = "INVALID_REQUEST"
+	CodeIncedentExists    ErrorCode = "INCEDENT_EXISTS"
+	CodeInvalidRequest    ErrorCode = "INVALID_REQUEST"
+	CodeInvalidValidation ErrorCode = "INVALID_VALIDATION"
 )
 
 type AppError struct {
@@ -25,4 +26,8 @@ func ErrIncedentExists() error {
 
 func ErrInvalidRequest(msg string) error {
 	return &AppError{Code: CodeInvalidRequest, Message: msg}
+}
+
+func ErrInvalidValidation(msg string) error {
+	return &AppError{Code: CodeInvalidValidation, Message: msg}
 }

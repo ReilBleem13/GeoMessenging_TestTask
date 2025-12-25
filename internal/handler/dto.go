@@ -1,13 +1,6 @@
 package handler
 
-type incedentRequestJSON struct {
-	ID     int     `db:"id" json:"id"`
-	Title  string  `db:"title" json:"title"`
-	Lat    float64 `db:"lat" json:"lat"`
-	Long   float64 `db:"long" json:"long"`
-	Radius int     `db:"radius_m" json:"redius_m"`
-	Active bool    `db:"active" json:"active"`
-}
+import "red_collar/internal/domain"
 
 type newIncedentJSON struct {
 	Title       string  `json:"title"`
@@ -31,5 +24,5 @@ type changeIncedentJSON struct {
 // Responses
 
 type incedentRequestResponse struct {
-	Incendent incedentRequestJSON `json:"Incedent"`
+	Incendent *domain.Incedent `json:"Incedent"`
 }

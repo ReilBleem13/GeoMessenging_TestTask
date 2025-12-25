@@ -39,9 +39,8 @@ func (h *Handler) handleCreateIncedent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := incedentRequestResponse{
-		Incendent: mapIncedentDTOToJSON(out.Incedent),
+		Incendent: out,
 	}
-
 	writeJSON(w, http.StatusCreated, resp)
 }
 
@@ -52,14 +51,3 @@ func (h *Handler) handleCreateIncedent(w http.ResponseWriter, r *http.Request) {
 // PUT /api/v1/incidents{id}
 
 // DELETE /api/v1/incidents{id}
-
-func mapIncedentDTOToJSON(inc service.IncedentRequestDTO) incedentRequestJSON {
-	return incedentRequestJSON{
-		ID:     inc.ID,
-		Title:  inc.Title,
-		Lat:    inc.Lat,
-		Long:   inc.Long,
-		Radius: inc.Radius,
-		Active: inc.Active,
-	}
-}

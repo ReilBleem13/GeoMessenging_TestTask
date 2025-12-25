@@ -23,13 +23,13 @@ func mapCreateIncedentInputToDomain(in *CreateIncedentRequestInput) *domain.Ince
 	}
 }
 
-func mapDomainIncedentToDTO(in *domain.Incedent) IncedentRequestDTO {
-	return IncedentRequestDTO{
-		ID:     in.ID,
-		Title:  in.Title,
-		Lat:    in.Lat,
-		Long:   in.Long,
-		Radius: in.Radius,
-		Active: in.Active,
-	}
-}
+// func mapDomainIncedentToDTO(in *domain.Incedent) *CreateIncedentOutput {
+// 	return &CreateIncedentOutput{
+// 		ID:     in.ID,
+// 		Title:  in.Title,
+// 		Lat:    in.Lat,
+// 		Long:   in.Long,
+// 		Radius: in.Radius,
+// 		Active: in.Active,
+// 	}
+// }
