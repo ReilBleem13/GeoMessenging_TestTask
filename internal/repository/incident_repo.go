@@ -21,8 +21,10 @@ func NewIncidentRepository(db *sqlx.DB) *IncidentRepository {
 
 func (ip *IncidentRepository) Create(ctx context.Context, incident *domain.Incident) error {
 	createIncidentQuery := `
-		INSERT INTO incidents (title, description, lat, long, radius_m, active)
-		VALUES($1, $2, $3, $4, $5, $6)		
+		INSERT INTO incidents (
+			title, description, lat, long, radius_m, active, geom
+		)
+		VALUES($1, $2, $3, $4, $5, $6, ST_SetSRID(ST_MakePoint($4, $3), 4326)::geography)		
 		RETURNING id, created_at, updated_at
 	`
 
@@ -103,6 +105,18 @@ func (ip *IncidentRepository) Delete(ctx context.Context, id int) error {
 }
 
 func (ip *IncidentRepository) FullUpdate(ctx context.Context, incident *domain.Incident) error {
+	tx, err := ip.db.BeginTxx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		} else {
+			tx.Commit()
+		}
+	}()
+
 	updateIncidentQuery := `
 		UPDATE incidents 
 		SET 
@@ -117,7 +131,7 @@ func (ip *IncidentRepository) FullUpdate(ctx context.Context, incident *domain.I
 		RETURNING created_at, updated_at
 	`
 
-	err := ip.db.QueryRowContext(ctx, updateIncidentQuery,
+	err = tx.QueryRowContext(ctx, updateIncidentQuery,
 		incident.Title,
 		incident.Description,
 		incident.Lat,
@@ -135,5 +149,15 @@ func (ip *IncidentRepository) FullUpdate(ctx context.Context, incident *domain.I
 		}
 		return err
 	}
-	return nil
+
+	updateGeomQuery := `
+		UPDATE incidents 
+		SET geom = ST_SetSRID(ST_MakePoint($1, $2), 4326)::geography
+		WHERE id = $3
+	`
+	_, err = tx.ExecContext(ctx, updateGeomQuery, incident.Long, incident.Lat, incident.ID)
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }

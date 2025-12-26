@@ -44,3 +44,11 @@ func mapFullUpdateIncident(in *FullUpdateIncidentRequestInput, id int) *domain.I
 		Active:      active,
 	}
 }
+
+func mapCheckInputToDomain(in *CheckCoordinatesRequestInput) *domain.LocationCheck {
+	return &domain.LocationCheck{
+		UserID: in.UserID,
+		Lat:    in.Lat,
+		Long:   in.Long,
+	}
+}

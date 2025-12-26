@@ -22,6 +22,12 @@ type FullUpdateIncidentRequestInput struct {
 	Active      *bool
 }
 
+type CheckCoordinatesRequestInput struct {
+	UserID string
+	Lat    float64
+	Long   float64
+}
+
 // OutPut
 type Pagination struct {
 	Total int `json:"total"`

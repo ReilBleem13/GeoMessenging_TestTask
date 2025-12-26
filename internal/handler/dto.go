@@ -11,18 +11,13 @@ type IncidentJSON struct {
 	Active      *bool   `json:"active,omitempty"`
 }
 
-type getIncedentJSON struct {
-	ID int `json:"id"`
-}
-
-type changeIncedentJSON struct {
+type CheckJSON struct {
+	UserID string  `json:"used_id"`
 	Lat    float64 `json:"lat"`
 	Long   float64 `json:"long"`
-	Radius *int    `json:"radius_m"`
 }
 
 // Responses
-
 type incedentRequestResponse struct {
 	Incendent *domain.Incident `json:"Incedent"`
 }

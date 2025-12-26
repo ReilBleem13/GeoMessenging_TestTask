@@ -16,8 +16,8 @@ func validateCreateIncidentInput(in *CreateIncidentRequestInput) error {
 		return domain.ErrInvalidValidation("title is required")
 	}
 
-	if in.Lat < -90 || in.Lat > 90 || in.Long < -180 || in.Long > 180 {
-		return domain.ErrInvalidValidation("lat or long is invalid")
+	if err := validateLatLong(in.Lat, in.Long); err != nil {
+		return err
 	}
 
 	if in.Radius < 5 {
@@ -36,8 +36,8 @@ func validateFullUpdateIncidentInput(in *FullUpdateIncidentRequestInput) (int, e
 		return 0, domain.ErrInvalidValidation("title is required")
 	}
 
-	if in.Lat < -90 || in.Lat > 90 || in.Long < -180 || in.Long > 180 {
-		return 0, domain.ErrInvalidValidation("lat or long is invalid")
+	if err := validateLatLong(in.Lat, in.Long); err != nil {
+		return 0, err
 	}
 
 	if in.Radius < 5 {
@@ -56,6 +56,13 @@ func validateID(id string) (int, error) {
 		return 0, domain.ErrInvalidValidation("invalid id format, must be integer")
 	}
 	return idInt, nil
+}
+
+func validateLatLong(lat, long float64) error {
+	if lat < -90 || lat > 90 || long < -180 || long > 180 {
+		return domain.ErrInvalidValidation("lat or long is invalid")
+	}
+	return nil
 }
 
 func validatePaginate(rawLimit, rawPage string) (int, int, int, error) {

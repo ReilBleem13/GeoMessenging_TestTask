@@ -44,8 +44,9 @@ func main() {
 	defer db.Close()
 
 	incedentService := repository.NewIncidentRepository(db.Client())
+	coordinatesService := repository.NewCoordinatesRepository(db.Client())
 
-	svc := service.NewService(incedentService, logger)
+	svc := service.NewService(incedentService, coordinatesService, logger)
 
 	httpMux := handler.NewRouter(svc, logger)
 	httpAddr := ":" + cfg.App.Port

@@ -15,3 +15,13 @@ type Incident struct {
 	CreatedAt   time.Time `db:"created_at" json:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at" json:"updated_at"`
 }
+
+type LocationCheck struct {
+	ID           int       `db:"id" json:"id"`
+	UserID       string    `db:"user_id" json:"user_id"`
+	CheckedAt    time.Time `db:"checked_at" json:"checked_at"`
+	Lat          float64   `db:"lat" json:"lat"`
+	Long         float64   `db:"long" json:"long"`
+	InDangerZone bool      `db:"in_danger_zone" json:"in_danger_zone"`
+	NearestID    *int      `db:"nearest_id" json:"nearest_id,omitempty"`
+}

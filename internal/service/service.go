@@ -1,16 +1,19 @@
 package service
 
 type Service struct {
-	incidents IncedentRepositoryInterface
-	logger    LoggerInterfaces
+	incidents   IncidentRepositoryInterface
+	coordinates CoordinatesRepositoryInterface
+	logger      LoggerInterfaces
 }
 
 func NewService(
-	incidents IncedentRepositoryInterface,
+	incidents IncidentRepositoryInterface,
+	coordinates CoordinatesRepositoryInterface,
 	logger LoggerInterfaces,
 ) *Service {
 	return &Service{
-		incidents: incidents,
-		logger:    logger,
+		incidents:   incidents,
+		coordinates: coordinates,
+		logger:      logger,
 	}
 }

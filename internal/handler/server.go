@@ -26,7 +26,15 @@ func NewRouter(svc *service.Service, logger service.LoggerInterfaces) *http.Serv
 	mux.HandleFunc("GET /api/v1/incidents", h.handlePaginate)
 	mux.HandleFunc("DELETE /api/v1/incidents/{id}", h.handleDeleteIncident)
 	mux.HandleFunc("PUT /api/v1/incidents/{id}", h.handlePutIncident)
+
+	mux.HandleFunc("POST /api/v1/location/check", h.handleCheckCoordinates)
+
+	mux.HandleFunc("GET /api/v1/system/health", h.handleHealth)
 	return mux
+}
+
+func (h *Handler) handleHealth(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 }
 
 func NewServer(addr string, handler http.Handler) *http.Server {

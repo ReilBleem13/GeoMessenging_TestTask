@@ -5,12 +5,16 @@ import (
 	"red_collar/internal/domain"
 )
 
-type IncedentRepositoryInterface interface {
+type IncidentRepositoryInterface interface {
 	Create(ctx context.Context, incedent *domain.Incident) error
 	GetByID(ctx context.Context, id int) (*domain.Incident, error)
 	Paginate(ctx context.Context, limit, offset int) ([]domain.Incident, int, error)
 	Delete(ctx context.Context, id int) error
 	FullUpdate(ctx context.Context, incident *domain.Incident) error
+}
+
+type CoordinatesRepositoryInterface interface {
+	Check(ctx context.Context, locCheck *domain.LocationCheck) error
 }
 
 type LoggerInterfaces interface {
