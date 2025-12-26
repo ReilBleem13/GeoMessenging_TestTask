@@ -19,7 +19,9 @@ type apiErrorResponse struct {
 func writeJSON(w http.ResponseWriter, status int, resp any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_ = json.NewEncoder(w).Encode(resp)
+	if resp != nil {
+		_ = json.NewEncoder(w).Encode(resp)
+	}
 }
 
 func writeAPIResponse(w http.ResponseWriter, status int, code, message string) {
@@ -51,8 +53,10 @@ func statusFromCode(code domain.ErrorCode) int {
 	switch code {
 	case domain.CodeInvalidRequest, domain.CodeInvalidValidation:
 		return 400
-	case domain.CodeIncidentExists:
+	case domain.CodeAlreadyExists:
 		return 409
+	case domain.CodeNotFound:
+		return 404
 	default:
 		return 503
 	}

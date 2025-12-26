@@ -2,7 +2,7 @@ package handler
 
 import "red_collar/internal/domain"
 
-type newIncedentJSON struct {
+type IncidentJSON struct {
 	Title       string  `json:"title"`
 	Description *string `json:"description,omitempty"`
 	Lat         float64 `json:"lat"`

@@ -19,7 +19,7 @@ func NewIncidentRepository(db *sqlx.DB) *IncidentRepository {
 	}
 }
 
-func (ip *IncidentRepository) Create(ctx context.Context, incedent *domain.Incident) error {
+func (ip *IncidentRepository) Create(ctx context.Context, incident *domain.Incident) error {
 	createIncidentQuery := `
 		INSERT INTO incidents (title, description, lat, long, radius_m, active)
 		VALUES($1, $2, $3, $4, $5, $6)		
@@ -27,16 +27,16 @@ func (ip *IncidentRepository) Create(ctx context.Context, incedent *domain.Incid
 	`
 
 	err := ip.db.QueryRowContext(ctx, createIncidentQuery,
-		incedent.Title,
-		incedent.Description,
-		incedent.Lat,
-		incedent.Long,
-		incedent.Radius,
-		incedent.Active,
-	).Scan(&incedent.ID, &incedent.CreatedAt, &incedent.UpdatedAt)
+		incident.Title,
+		incident.Description,
+		incident.Lat,
+		incident.Long,
+		incident.Radius,
+		incident.Active,
+	).Scan(&incident.ID, &incident.CreatedAt, &incident.UpdatedAt)
 	if err != nil {
 		if pqErr, ok := err.(*pq.Error); ok && pqErr.Code == "23505" {
-			return domain.ErrIncedentExists()
+			return domain.ErrAlreadyExists("incident already exists")
 		}
 		return err
 	}
@@ -82,4 +82,58 @@ func (ip *IncidentRepository) Paginate(ctx context.Context, limit, offset int) (
 		return nil, 0, err
 	}
 	return incidents, total, nil
+}
+
+func (ip *IncidentRepository) Delete(ctx context.Context, id int) error {
+	deleteQuery := `DELETE FROM incidents WHERE id = $1`
+	res, err := ip.db.ExecContext(ctx, deleteQuery, id)
+	if err != nil {
+		return err
+	}
+
+	r, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if r == 0 {
+		return domain.ErrNotFound("incident not found")
+	}
+	return nil
+}
+
+func (ip *IncidentRepository) FullUpdate(ctx context.Context, incident *domain.Incident) error {
+	updateIncidentQuery := `
+		UPDATE incidents 
+		SET 
+			title = $1,
+			description = $2,
+			lat = $3,
+			long = $4,
+			radius_m = $5,
+			active = $6,
+			updated_at = NOW()
+		WHERE id = $7
+		RETURNING created_at, updated_at
+	`
+
+	err := ip.db.QueryRowContext(ctx, updateIncidentQuery,
+		incident.Title,
+		incident.Description,
+		incident.Lat,
+		incident.Long,
+		incident.Radius,
+		incident.Active,
+		incident.ID,
+	).Scan(
+		&incident.CreatedAt,
+		&incident.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return domain.ErrNotFound("incident not found")
+		}
+		return err
+	}
+	return nil
 }

@@ -3,7 +3,17 @@ package service
 import "red_collar/internal/domain"
 
 // Input
-type CreateIncedentRequestInput struct {
+type CreateIncidentRequestInput struct {
+	Title       string
+	Description *string
+	Lat         float64
+	Long        float64
+	Radius      int
+	Active      *bool
+}
+
+type FullUpdateIncidentRequestInput struct {
+	ID          string
 	Title       string
 	Description *string
 	Lat         float64

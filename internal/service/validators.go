@@ -7,12 +7,11 @@ import (
 )
 
 const (
-	defaultLimit  = 5
-	maxLimit      = 50
-	defaultOffset = 0
+	defaultLimit = 5
+	maxLimit     = 50
 )
 
-func validateCreateIncedentInput(in *CreateIncedentRequestInput) error {
+func validateCreateIncidentInput(in *CreateIncidentRequestInput) error {
 	if strings.TrimSpace(in.Title) == "" {
 		return domain.ErrInvalidValidation("title is required")
 	}
@@ -27,7 +26,27 @@ func validateCreateIncedentInput(in *CreateIncedentRequestInput) error {
 	return nil
 }
 
-func validateGetIncedentByID(id string) (int, error) {
+func validateFullUpdateIncidentInput(in *FullUpdateIncidentRequestInput) (int, error) {
+	id, err := validateID(in.ID)
+	if err != nil {
+		return 0, err
+	}
+
+	if strings.TrimSpace(in.Title) == "" {
+		return 0, domain.ErrInvalidValidation("title is required")
+	}
+
+	if in.Lat < -90 || in.Lat > 90 || in.Long < -180 || in.Long > 180 {
+		return 0, domain.ErrInvalidValidation("lat or long is invalid")
+	}
+
+	if in.Radius < 5 {
+		return 0, domain.ErrInvalidValidation("radius must be more than 5 meters")
+	}
+	return id, nil
+}
+
+func validateID(id string) (int, error) {
 	if id == "" {
 		return 0, domain.ErrInvalidValidation("id is required")
 	}

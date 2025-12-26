@@ -2,8 +2,8 @@ package service
 
 import "red_collar/internal/domain"
 
-func mapCreateIncedentInputToDomain(in *CreateIncedentRequestInput) *domain.Incident {
-	desc := ""
+func mapCreateIncidentInputToDomain(in *CreateIncidentRequestInput) *domain.Incident {
+	desc := "without description"
 	if in.Description != nil {
 		desc = *in.Description
 	}
@@ -23,13 +23,24 @@ func mapCreateIncedentInputToDomain(in *CreateIncedentRequestInput) *domain.Inci
 	}
 }
 
-// func mapDomainIncedentToDTO(in *domain.Incedent) *CreateIncedentOutput {
-// 	return &CreateIncedentOutput{
-// 		ID:     in.ID,
-// 		Title:  in.Title,
-// 		Lat:    in.Lat,
-// 		Long:   in.Long,
-// 		Radius: in.Radius,
-// 		Active: in.Active,
-// 	}
-// }
+func mapFullUpdateIncident(in *FullUpdateIncidentRequestInput, id int) *domain.Incident {
+	desc := "without description"
+	if in.Description != nil {
+		desc = *in.Description
+	}
+
+	active := true
+	if in.Active != nil {
+		active = *in.Active
+	}
+
+	return &domain.Incident{
+		ID:          id,
+		Title:       in.Title,
+		Description: desc,
+		Lat:         in.Lat,
+		Long:        in.Long,
+		Radius:      in.Radius,
+		Active:      active,
+	}
+}

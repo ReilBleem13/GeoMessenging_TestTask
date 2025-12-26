@@ -3,7 +3,7 @@ package domain
 type ErrorCode string
 
 const (
-	CodeIncidentExists    ErrorCode = "INCIDENT_EXISTS"
+	CodeAlreadyExists     ErrorCode = "ALREADY_EXISTS"
 	CodeInvalidRequest    ErrorCode = "INVALID_REQUEST"
 	CodeInvalidValidation ErrorCode = "INVALID_VALIDATION"
 	CodeNotFound          ErrorCode = "NOT_FOUND"
@@ -21,8 +21,8 @@ func (e *AppError) Error() string {
 	return string(e.Code)
 }
 
-func ErrIncedentExists() error {
-	return &AppError{Code: CodeIncidentExists, Message: "incedent_title already exists"}
+func ErrAlreadyExists(msg string) error {
+	return &AppError{Code: CodeAlreadyExists, Message: msg}
 }
 
 func ErrInvalidRequest(msg string) error {

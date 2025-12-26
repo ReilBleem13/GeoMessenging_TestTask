@@ -19,12 +19,13 @@ func NewHandler(svc *service.Service, logger service.LoggerInterfaces) *Handler 
 
 func NewRouter(svc *service.Service, logger service.LoggerInterfaces) *http.ServeMux {
 	h := NewHandler(svc, logger)
-
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("POST /api/v1/incidents", h.handleCreateIncident)
 	mux.HandleFunc("GET /api/v1/incidents/{id}", h.handleGetIncidentByID)
 	mux.HandleFunc("GET /api/v1/incidents", h.handlePaginate)
+	mux.HandleFunc("DELETE /api/v1/incidents/{id}", h.handleDeleteIncident)
+	mux.HandleFunc("PUT /api/v1/incidents/{id}", h.handlePutIncident)
 	return mux
 }
 
