@@ -11,6 +11,8 @@ import (
 type Config struct {
 	App      App
 	Database Database
+	Redis    Redis
+	Webhook  Webhook
 }
 
 type App struct {
@@ -25,6 +27,21 @@ type Database struct {
 	DBName   string `env:"POSTGRES_DB" env-required:"true"`
 	Password string `env:"POSTGRES_PASSWORD" env-required:"true"`
 	SSLMode  string `env:"POSTGRES_SSLMODE" env-required:"true"`
+}
+
+type Redis struct {
+	Host     string `env:"REDIS_HOST" env-required:"true"`
+	Port     string `env:"REDIS_PORT" env-required:"true"`
+	Password string `env:"REDIS_PASSWORD" env-required:"true"`
+	DB       int    `env:"REDIS_DB" env-required:"true"`
+}
+
+func (r Redis) Addr() string {
+	return fmt.Sprintf("%s:%s", r.Host, r.Port)
+}
+
+type Webhook struct {
+	URL string `env:"WEBHOOK_URL" env-required:"true"`
 }
 
 func (d Database) DSN() string {

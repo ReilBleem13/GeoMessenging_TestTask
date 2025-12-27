@@ -10,7 +10,9 @@ import (
 	"red_collar/internal/handler"
 	"red_collar/internal/repository"
 	"red_collar/internal/repository/database"
+	redisClient "red_collar/internal/repository/redis"
 	"red_collar/internal/service"
+	worker "red_collar/internal/workers"
 	"syscall"
 	"time"
 
@@ -50,10 +52,27 @@ func main() {
 	}
 	logging.L(ctx).Info("migrations applied successfully")
 
+	redisCli, err := redisClient.NewRedisClient(ctx, redisClient.RedisConfig{
+		Addr:     cfg.Redis.Addr(),
+		Password: cfg.Redis.Password,
+		DB:       cfg.Redis.DB,
+	})
+	if err != nil {
+		log.Fatal("unable to create redis connection: ", err)
+	}
+	defer redisCli.Close()
+	logging.L(ctx).Info("redis connected successfully")
+
+	queue := redisClient.NewQueue(redisCli.Client())
+
 	incedentService := repository.NewIncidentRepository(db.Client())
 	coordinatesService := repository.NewCoordinatesRepository(db.Client())
 
-	svc := service.NewService(incedentService, coordinatesService, logger)
+	svc := service.NewService(incedentService, coordinatesService, queue, logger)
+
+	// Запуск вебхук воркера
+	webhookWorker := worker.NewWebhookWorker(queue, cfg.Webhook.URL, logger)
+	go webhookWorker.Start(ctx)
 
 	httpMux := handler.NewRouter(svc, logger)
 	httpAddr := ":" + cfg.App.Port
@@ -96,6 +115,10 @@ func main() {
 
 	if err := db.Close(); err != nil {
 		logging.L(ctx).Error("failed to close database connection", logging.ErrAttr(err))
+	}
+
+	if err := redisCli.Close(); err != nil {
+		logging.L(ctx).Error("failed to close redis connection", logging.ErrAttr(err))
 	}
 
 	<-shutdownCtx.Done()

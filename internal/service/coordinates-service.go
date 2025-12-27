@@ -33,5 +33,18 @@ func (s *Service) CheckCoordinates(ctx context.Context, in *CheckCoordinatesRequ
 	s.logger.Info("location was successfully checked",
 		logging.StringAttr("user", in.UserID),
 	)
+
+	if check.InDangerZone {
+		if err := s.queue.Enqueue(ctx, check); err != nil {
+			s.logger.Error("failed to enqueue webhook task",
+				logging.StringAttr("userID", in.UserID),
+				logging.ErrAttr(err),
+			)
+		} else {
+			s.logger.Info("webhook task enqueued",
+				logging.StringAttr("userID", in.UserID),
+			)
+		}
+	}
 	return check, nil
 }

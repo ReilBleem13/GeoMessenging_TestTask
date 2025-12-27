@@ -23,3 +23,7 @@ type LoggerInterfaces interface {
 	Warn(msg string, params ...any)
 	Error(msg string, params ...any)
 }
+
+type QueueInterface interface {
+	Enqueue(ctx context.Context, check *domain.LocationCheck) error
+}

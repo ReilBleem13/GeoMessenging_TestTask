@@ -11,9 +11,17 @@ type RedisClient struct {
 	client *redis.Client
 }
 
-func NewRedisClient(ctx context.Context, cfg string) (*RedisClient, error) {
+type RedisConfig struct {
+	Addr     string
+	Password string
+	DB       int
+}
+
+func NewRedisClient(ctx context.Context, cfg RedisConfig) (*RedisClient, error) {
 	client := redis.NewClient(&redis.Options{
-		Addr: "addr",
+		Addr:     cfg.Addr,
+		Password: cfg.Password,
+		DB:       cfg.DB,
 	})
 
 	if err := client.Ping(ctx).Err(); err != nil {
@@ -21,4 +29,12 @@ func NewRedisClient(ctx context.Context, cfg string) (*RedisClient, error) {
 	}
 
 	return &RedisClient{client: client}, nil
+}
+
+func (r *RedisClient) Client() *redis.Client {
+	return r.client
+}
+
+func (r *RedisClient) Close() error {
+	return r.client.Close()
 }
