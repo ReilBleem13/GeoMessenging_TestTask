@@ -1,0 +1,15 @@
+.env
+.env.local
+.env.*.local
+
+*.log
+dump.sql
+*.backup
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+*.tmp
+temp/

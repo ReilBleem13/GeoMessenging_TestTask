@@ -6,7 +6,6 @@ RUN go mod download
 
 COPY . .
 
-# Самое важное — теги netgo + osusergo + CGO_ENABLED=0
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build \
     -a \
@@ -19,6 +18,7 @@ FROM scratch
 WORKDIR /app
 COPY --from=builder /app/geo_not /app/geo_not
 COPY .env ./
+COPY migrations ./migrations
 
 EXPOSE 8080
 CMD ["/app/geo_not"]

@@ -15,6 +15,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"github.com/pressly/goose/v3"
 	"github.com/theartofdevel/logging"
 )
 
@@ -42,6 +43,12 @@ func main() {
 		log.Fatal("unable to create database connection")
 	}
 	defer db.Close()
+
+	goose.SetDialect("postgres")
+	if err := goose.Up(db.Client().DB, "migrations"); err != nil {
+		log.Fatal("migrations failed: ", err)
+	}
+	logging.L(ctx).Info("migrations applied successfully")
 
 	incedentService := repository.NewIncidentRepository(db.Client())
 	coordinatesService := repository.NewCoordinatesRepository(db.Client())
