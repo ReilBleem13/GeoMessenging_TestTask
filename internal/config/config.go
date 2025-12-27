@@ -16,8 +16,9 @@ type Config struct {
 }
 
 type App struct {
-	Mode string `env:"MODE" env-required:"debug"` // debug, release
-	Port string `env:"PORT" env-required:"8080"`
+	Mode   string `env:"MODE" env-required:"debug"` // debug, release
+	Port   string `env:"PORT" env-required:"8080"`
+	APIKey string `env:"API_KEY" env-required:"true"`
 }
 
 type Database struct {

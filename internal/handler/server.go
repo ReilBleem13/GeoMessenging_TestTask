@@ -17,15 +17,17 @@ func NewHandler(svc *service.Service, logger service.LoggerInterfaces) *Handler 
 	}
 }
 
-func NewRouter(svc *service.Service, logger service.LoggerInterfaces) *http.ServeMux {
+func NewRouter(svc *service.Service, logger service.LoggerInterfaces, apiKey string) *http.ServeMux {
 	h := NewHandler(svc, logger)
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /api/v1/incidents", h.handleCreateIncident)
-	mux.HandleFunc("GET /api/v1/incidents/{id}", h.handleGetIncidentByID)
-	mux.HandleFunc("GET /api/v1/incidents", h.handlePaginate)
-	mux.HandleFunc("DELETE /api/v1/incidents/{id}", h.handleDeleteIncident)
-	mux.HandleFunc("PUT /api/v1/incidents/{id}", h.handlePutIncident)
+	apiKeyAuth := apiKeyMiddleware(apiKey, logger)
+
+	mux.Handle("POST /api/v1/incidents", apiKeyAuth(http.HandlerFunc(h.handleCreateIncident)))
+	mux.Handle("GET /api/v1/incidents/{id}", apiKeyAuth(http.HandlerFunc(h.handleGetIncidentByID)))
+	mux.Handle("GET /api/v1/incidents", apiKeyAuth(http.HandlerFunc(h.handlePaginate)))
+	mux.Handle("DELETE /api/v1/incidents/{id}", apiKeyAuth(http.HandlerFunc(h.handleDeleteIncident)))
+	mux.Handle("PUT /api/v1/incidents/{id}", apiKeyAuth(http.HandlerFunc(h.handlePutIncident)))
 
 	mux.HandleFunc("POST /api/v1/location/check", h.handleCheckCoordinates)
 

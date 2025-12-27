@@ -7,6 +7,7 @@ const (
 	CodeInvalidRequest    ErrorCode = "INVALID_REQUEST"
 	CodeInvalidValidation ErrorCode = "INVALID_VALIDATION"
 	CodeNotFound          ErrorCode = "NOT_FOUND"
+	CodeUnauthorized      ErrorCode = "UNAUTHORIZED"
 )
 
 type AppError struct {
@@ -35,4 +36,8 @@ func ErrInvalidValidation(msg string) error {
 
 func ErrNotFound(msg string) error {
 	return &AppError{Code: CodeNotFound, Message: msg}
+}
+
+func ErrUnauthorized(msg string) error {
+	return &AppError{Code: CodeUnauthorized, Message: msg}
 }
