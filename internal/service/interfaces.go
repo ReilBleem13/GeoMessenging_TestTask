@@ -28,3 +28,9 @@ type LoggerInterfaces interface {
 type QueueInterface interface {
 	Enqueue(ctx context.Context, check *domain.LocationCheck) error
 }
+
+type CacheInterface interface {
+	Save(ctx context.Context, data []byte, key string) error
+	Get(ctx context.Context, key string) ([]byte, error)
+	Delete(ctx context.Context, key string) (bool, error)
+}

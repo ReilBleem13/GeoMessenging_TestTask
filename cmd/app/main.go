@@ -67,8 +67,9 @@ func main() {
 
 	incedentService := repository.NewIncidentRepository(db.Client())
 	coordinatesService := repository.NewCoordinatesRepository(db.Client())
+	cache := repository.NewCacheRepository(redisCli.Client())
 
-	svc := service.NewService(incedentService, coordinatesService, queue, logger)
+	svc := service.NewService(incedentService, coordinatesService, queue, cache, logger)
 
 	// Запуск вебхук воркера
 	webhookWorker := worker.NewWebhookWorker(queue, cfg.Webhook.URL, logger)
