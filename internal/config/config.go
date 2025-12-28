@@ -16,9 +16,10 @@ type Config struct {
 }
 
 type App struct {
-	Mode   string `env:"MODE" env-required:"debug"` // debug, release
-	Port   string `env:"PORT" env-required:"8080"`
-	APIKey string `env:"API_KEY" env-required:"true"`
+	Mode                string `env:"MODE" env-required:"true"` // debug, release
+	Port                string `env:"PORT" env-required:"true"`
+	APIKey              string `env:"API_KEY" env-required:"true"`
+	StatsTimeWindowMins int    `env:"STATS_TIME_WINDOW_MINUTES" env-required:"true"`
 }
 
 type Database struct {

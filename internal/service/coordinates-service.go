@@ -48,3 +48,18 @@ func (s *Service) CheckCoordinates(ctx context.Context, in *CheckCoordinatesRequ
 	}
 	return check, nil
 }
+
+func (s *Service) GetStats(ctx context.Context, timeWindowMinutes int) ([]domain.ZoneStat, error) {
+	s.logger.Info("attempt to get stats")
+
+	zones, err := s.coordinates.GetStats(ctx, timeWindowMinutes)
+	if err != nil {
+		s.logger.Error("failed to get stat repository error",
+			logging.ErrAttr(err),
+		)
+		return nil, err
+	}
+
+	s.logger.Info("successfully got stats")
+	return zones, nil
+}

@@ -21,3 +21,7 @@ type CheckJSON struct {
 type incedentRequestResponse struct {
 	Incendent *domain.Incident `json:"Incedent"`
 }
+
+type statsRequestResponse struct {
+	Stats []domain.ZoneStat `json:"Stats"`
+}

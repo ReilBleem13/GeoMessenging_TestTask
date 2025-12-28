@@ -82,3 +82,23 @@ func (c *CoordinatesRepository) Check(ctx context.Context, locCheck *domain.Loca
 	}
 	return tx.Commit()
 }
+
+func (c *CoordinatesRepository) GetStats(ctx context.Context, timeWindowMinutes int) ([]domain.ZoneStat, error) {
+	getQuery := `
+		SELECT 
+			nearest_id as zone_id,
+			COUNT(DISTINCT user_id) as user_count
+		FROM location_checks
+		WHERE in_danger_zone = true
+			AND checked_at >= NOW() - INTERVAL '1 minute' * $1
+		GROUP BY nearest_id
+		ORDER BY zone_id
+	`
+
+	var stats []domain.ZoneStat
+	err := c.db.SelectContext(ctx, &stats, getQuery, timeWindowMinutes)
+	if err != nil {
+		return nil, err
+	}
+	return stats, nil
+}

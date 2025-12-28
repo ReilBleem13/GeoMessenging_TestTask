@@ -6,19 +6,21 @@ import (
 )
 
 type Handler struct {
-	svc    *service.Service
-	logger service.LoggerInterfaces
+	svc                 *service.Service
+	logger              service.LoggerInterfaces
+	statsTimeWindowMins int
 }
 
-func NewHandler(svc *service.Service, logger service.LoggerInterfaces) *Handler {
+func NewHandler(svc *service.Service, logger service.LoggerInterfaces, statsTimeWindowsMins int) *Handler {
 	return &Handler{
-		svc:    svc,
-		logger: logger,
+		svc:                 svc,
+		logger:              logger,
+		statsTimeWindowMins: statsTimeWindowsMins,
 	}
 }
 
-func NewRouter(svc *service.Service, logger service.LoggerInterfaces, apiKey string) *http.ServeMux {
-	h := NewHandler(svc, logger)
+func NewRouter(svc *service.Service, logger service.LoggerInterfaces, apiKey string, statsTimeWindowMins int) *http.ServeMux {
+	h := NewHandler(svc, logger, statsTimeWindowMins)
 	mux := http.NewServeMux()
 
 	apiKeyAuth := apiKeyMiddleware(apiKey, logger)
@@ -30,6 +32,7 @@ func NewRouter(svc *service.Service, logger service.LoggerInterfaces, apiKey str
 	mux.Handle("PUT /api/v1/incidents/{id}", apiKeyAuth(http.HandlerFunc(h.handlePutIncident)))
 
 	mux.HandleFunc("POST /api/v1/location/check", h.handleCheckCoordinates)
+	mux.HandleFunc("GET /api/v1/incidents/stats", h.handleStats)
 
 	mux.HandleFunc("GET /api/v1/system/health", h.handleHealth)
 	return mux

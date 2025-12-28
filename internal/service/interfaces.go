@@ -15,6 +15,7 @@ type IncidentRepositoryInterface interface {
 
 type CoordinatesRepositoryInterface interface {
 	Check(ctx context.Context, locCheck *domain.LocationCheck) error
+	GetStats(ctx context.Context, timeWindowMinutes int) ([]domain.ZoneStat, error)
 }
 
 type LoggerInterfaces interface {

@@ -74,7 +74,7 @@ func main() {
 	webhookWorker := worker.NewWebhookWorker(queue, cfg.Webhook.URL, logger)
 	go webhookWorker.Start(ctx)
 
-	httpMux := handler.NewRouter(svc, logger, cfg.App.APIKey)
+	httpMux := handler.NewRouter(svc, logger, cfg.App.APIKey, cfg.App.StatsTimeWindowMins)
 	httpAddr := ":" + cfg.App.Port
 	httpServer := handler.NewServer(httpAddr, httpMux)
 

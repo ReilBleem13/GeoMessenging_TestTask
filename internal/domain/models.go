@@ -25,3 +25,8 @@ type LocationCheck struct {
 	InDangerZone bool      `db:"in_danger_zone" json:"in_danger_zone"`
 	NearestID    *int      `db:"nearest_id" json:"nearest_id,omitempty"`
 }
+
+type ZoneStat struct {
+	ZoneID    int `db:"zone_id" json:"zone_id"`
+	UserCount int `db:"user_count" json:"user_count"`
+}

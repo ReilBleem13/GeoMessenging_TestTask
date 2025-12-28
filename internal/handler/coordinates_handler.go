@@ -30,3 +30,16 @@ func (h *Handler) handleCheckCoordinates(w http.ResponseWriter, r *http.Request)
 	}
 	writeJSON(w, 200, out)
 }
+
+func (h *Handler) handleStats(w http.ResponseWriter, r *http.Request) {
+	out, err := h.svc.GetStats(r.Context(), h.statsTimeWindowMins)
+	if err != nil {
+		h.WriteError(w, err)
+		return
+	}
+
+	zones := statsRequestResponse{
+		Stats: out,
+	}
+	writeJSON(w, 200, zones)
+}
