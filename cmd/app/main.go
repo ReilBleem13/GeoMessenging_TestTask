@@ -63,7 +63,7 @@ func main() {
 	defer redisCli.Close()
 	logging.L(ctx).Info("redis connected successfully")
 
-	queue := redisClient.NewQueue(redisCli.Client())
+	queue := repository.NewQueue(redisCli.Client())
 
 	incedentService := repository.NewIncidentRepository(db.Client())
 	coordinatesService := repository.NewCoordinatesRepository(db.Client())

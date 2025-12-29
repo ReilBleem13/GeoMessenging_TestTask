@@ -118,6 +118,10 @@ func TestMain(m *testing.M) {
 	if testDBClient != nil {
 		testDBClient.Close()
 	}
+
+	if testRDClient != nil {
+		testRDClient.Close()
+	}
 	os.Exit(code)
 }
 

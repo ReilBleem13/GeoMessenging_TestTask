@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"net/http"
 	"red_collar/internal/domain"
-	"red_collar/internal/repository/redis"
+	"red_collar/internal/repository"
 	"red_collar/internal/service"
 	"time"
 
@@ -22,13 +22,13 @@ const (
 )
 
 type WebhookWorker struct {
-	queue      *redis.Queue
+	queue      *repository.Queue
 	webhookURL string
 	logger     service.LoggerInterfaces
 	client     *http.Client
 }
 
-func NewWebhookWorker(queue *redis.Queue, webhookURL string, logger service.LoggerInterfaces) *WebhookWorker {
+func NewWebhookWorker(queue *repository.Queue, webhookURL string, logger service.LoggerInterfaces) *WebhookWorker {
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
@@ -102,7 +102,7 @@ func (w *WebhookWorker) Start(ctx context.Context) {
 	}
 }
 
-func (w *WebhookWorker) handleWebhookError(ctx context.Context, task *redis.WebhookTask, err error) {
+func (w *WebhookWorker) handleWebhookError(ctx context.Context, task *repository.WebhookTask, err error) {
 	task.Attempt++
 	task.LastError = err.Error()
 
@@ -126,7 +126,7 @@ func (w *WebhookWorker) handleWebhookError(ctx context.Context, task *redis.Webh
 
 }
 
-func (w *WebhookWorker) sendToDLQ(ctx context.Context, task *redis.WebhookTask) {
+func (w *WebhookWorker) sendToDLQ(ctx context.Context, task *repository.WebhookTask) {
 	if err := w.queue.EnqueueDLQ(ctx, task); err != nil {
 		w.logger.Error("failed to send task to DLQ",
 			logging.StringAttr("user_id", task.LocationCheck.UserID),
