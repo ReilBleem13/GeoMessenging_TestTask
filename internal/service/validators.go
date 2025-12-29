@@ -20,8 +20,8 @@ func validateCreateIncidentInput(in *CreateIncidentRequestInput) error {
 		return err
 	}
 
-	if in.Radius < 5 {
-		return domain.ErrInvalidValidation("radius must be more than 5 meters")
+	if in.Radius < 50 {
+		return domain.ErrInvalidValidation("radius must be more than 50 meters")
 	}
 	return nil
 }
@@ -71,7 +71,7 @@ func validatePaginate(rawLimit, rawPage string) (int, int, int, error) {
 		return 0, 0, 0, domain.ErrInvalidValidation("invalid limit format, must be integer")
 	}
 
-	if limit < 1 {
+	if limit < defaultLimit {
 		limit = defaultLimit
 	}
 

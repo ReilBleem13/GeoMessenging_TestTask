@@ -85,7 +85,7 @@ func (s *Service) GetIncidentByID(ctx context.Context, rawID string) (*domain.In
 func (s *Service) PaginateIncident(ctx context.Context, rawLimit, rawPage string) (*PaginateIncidentsOutput, error) {
 	offset, limit, page, err := validatePaginate(rawLimit, rawPage)
 	if err != nil {
-		s.logger.Error("paginate incidetns validation failed",
+		s.logger.Error("paginate incidents validation failed",
 			logging.StringAttr("rawLimit", rawLimit),
 			logging.StringAttr("rawPage", rawPage),
 			logging.ErrAttr(err),
