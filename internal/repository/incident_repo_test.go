@@ -27,7 +27,9 @@ var (
 
 	testDB       *sqlx.DB
 	testDBClient *database.PostgresClient
+
 	testRepo     *IncidentRepository
+	testRepoCoor *CoordinatesRepository
 )
 
 // настройка
@@ -102,6 +104,7 @@ func setupTestDB(t *testing.T) {
 	require.NoError(t, err)
 
 	testRepo = NewIncidentRepository(testDB)
+	testRepoCoor = NewCoordinatesRepository(testDB)
 }
 
 func cleanupTestDB(t *testing.T) {

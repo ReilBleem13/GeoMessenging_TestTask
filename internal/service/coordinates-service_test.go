@@ -6,6 +6,8 @@ import (
 	"red_collar/internal/domain"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestService_CheckCoordinates(t *testing.T) {
@@ -15,6 +17,7 @@ func TestService_CheckCoordinates(t *testing.T) {
 		coordinatesMock func() *mockCoordinatesRepository
 		queueMock       func() *mockQueue
 		wantErr         bool
+		errType         func(err error) bool
 		validateResult  func(t *testing.T, result *domain.LocationCheck)
 		validateLogs    func(t *testing.T, logger *mockLogger)
 	}{
@@ -32,17 +35,17 @@ func TestService_CheckCoordinates(t *testing.T) {
 				return &mockQueue{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				if !errors.As(err, &appErr) {
+					return false
+				}
+				return appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log, got none")
-					return
-				}
-
-				expectedMsg := "check coordinates request validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected error message '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should have exactly 1 error log")
+				require.Equal(t, "check coordinates request validation failed", errorLogs[0].msg)
 			},
 		},
 		{
@@ -59,17 +62,17 @@ func TestService_CheckCoordinates(t *testing.T) {
 				return &mockQueue{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				if !errors.As(err, &appErr) {
+					return false
+				}
+				return appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log, got none")
-					return
-				}
-
-				expectedMsg := "check coordinates request validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected error message '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1)
+				require.Equal(t, "check coordinates request validation failed", errorLogs[0].msg)
 			},
 		},
 		{
@@ -92,21 +95,11 @@ func TestService_CheckCoordinates(t *testing.T) {
 			wantErr: true,
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 1 {
-					t.Error("expected 1 info log, got none")
-					return
-				}
+				require.Len(t, infoLogs, 1, "should log attempt")
 
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log, got none")
-					return
-				}
-
-				expectedMsg := "check coordinates request repository error"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected error message '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log repository error")
+				require.Equal(t, "check coordinates request repository error", errorLogs[0].msg)
 			},
 		},
 		{
@@ -132,25 +125,18 @@ func TestService_CheckCoordinates(t *testing.T) {
 			},
 			wantErr: false,
 			validateResult: func(t *testing.T, result *domain.LocationCheck) {
-				if result.UserID != "colorvax" {
-					t.Errorf("expected UserID 'colorvax', got '%s'", result.UserID)
-				}
-				if result.Lat != 45 {
-					t.Errorf("expected Lat 45, got %f", result.Lat)
-				}
-				if result.Long != 30 {
-					t.Errorf("expected Long 30, got %f", result.Long)
-				}
-				if result.InDangerZone != false {
-					t.Errorf("expected inDangerZone false, got %v", result.InDangerZone)
-				}
+				require.NotNil(t, result)
+				require.Equal(t, "colorvax", result.UserID)
+				require.Equal(t, 45.0, result.Lat)
+				require.Equal(t, 30.0, result.Long)
+				require.False(t, result.InDangerZone)
+				require.Nil(t, result.NearestID)
+				require.NotZero(t, result.ID)
+				require.False(t, result.CheckedAt.IsZero())
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info log, got none")
-					return
-				}
+				require.Len(t, infoLogs, 2, "should log attempt and success")
 			},
 		},
 		{
@@ -175,28 +161,25 @@ func TestService_CheckCoordinates(t *testing.T) {
 			queueMock: func() *mockQueue {
 				return &mockQueue{
 					enqueueFunc: func(ctx context.Context, check *domain.LocationCheck) error {
+
 						return nil
 					},
 				}
 			},
-			wantErr: false,
 			validateResult: func(t *testing.T, result *domain.LocationCheck) {
-				if result.UserID != "colorvax" {
-					t.Errorf("expected UserID 'colorvax', got '%s'", result.UserID)
-				}
-				if result.InDangerZone != true {
-					t.Errorf("expected inDangerZone true, got %v", result.InDangerZone)
-				}
-				if result.NearestID == nil || *result.NearestID != 10 {
-					t.Errorf("expected NearestID 10, got %v", result.NearestID)
-				}
+				require.NotNil(t, result)
+				require.Equal(t, "colorvax", result.UserID)
+				require.True(t, result.InDangerZone)
+				require.NotNil(t, result.NearestID)
+				require.Equal(t, 10, *result.NearestID)
+				require.Equal(t, 50.0, result.Lat)
+				require.Equal(t, 40.0, result.Long)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 3 {
-					t.Error("expected 3 info log, got none")
-					return
-				}
+				require.Len(t, infoLogs, 3, "should log attempt, success, and enqueue")
+				errorLogs := logger.GetErrorLogs()
+				require.Empty(t, errorLogs, "should not have errors")
 			},
 		},
 		{
@@ -225,38 +208,28 @@ func TestService_CheckCoordinates(t *testing.T) {
 					},
 				}
 			},
-			wantErr: false,
 			validateResult: func(t *testing.T, result *domain.LocationCheck) {
-				if result.UserID != "colorvax" {
-					t.Errorf("expected UserID 'colorvax', got '%s'", result.UserID)
-				}
-				if result.InDangerZone != true {
-					t.Errorf("expected inDangerZone true, got %v", result.InDangerZone)
-				}
+				require.NotNil(t, result)
+				require.Equal(t, "colorvax", result.UserID)
+				require.True(t, result.InDangerZone)
+				require.NotNil(t, result.NearestID)
+				require.Equal(t, 10, *result.NearestID)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info log, got none")
-					return
-				}
+				require.Len(t, infoLogs, 2, "should log attempt and success (but not enqueue success)")
 
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expectedd 1 error log, got none")
-					return
-				}
-
-				expectedMsg := "failed to enqueue webhook task"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected error message '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log enqueue error")
+				require.Equal(t, "failed to enqueue webhook task", errorLogs[0].msg)
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx := context.Background()
 			mockLog := &mockLogger{}
 
@@ -273,20 +246,16 @@ func TestService_CheckCoordinates(t *testing.T) {
 			}
 
 			if tt.wantErr {
-				if err == nil {
-					t.Errorf("expected error, got nil")
+				require.Error(t, err, "expected error but got none")
+				if tt.errType != nil {
+					require.True(t, tt.errType(err), "wrong error type: %v", err)
 				}
+				require.Nil(t, result, "result should be nil on error")
 				return
 			}
 
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-				return
-			}
-
-			if result == nil {
-				t.Fatal("expected result, got nil")
-			}
+			require.NoError(t, err, "unexpected error: %v", err)
+			require.NotNil(t, result, "expected result, got nil")
 
 			if tt.validateResult != nil {
 				tt.validateResult(t, result)
@@ -301,6 +270,7 @@ func TestService_GetStats(t *testing.T) {
 		timeWindowMinutes int
 		coordinates       func() *mockCoordinatesRepository
 		wantErr           bool
+		errType           func(err error) bool
 		validateResult    func(t *testing.T, result []domain.ZoneStat)
 		validateLogs      func(t *testing.T, logger *mockLogger)
 	}{
@@ -318,24 +288,19 @@ func TestService_GetStats(t *testing.T) {
 					},
 				}
 			},
-			wantErr: false,
 			validateResult: func(t *testing.T, result []domain.ZoneStat) {
-				if len(result) != 2 {
-					t.Errorf("expected len zones 2, got %d", len(result))
-				}
-				if result[0].ZoneID != 1 || result[0].UserCount != 5 {
-					t.Errorf("expected ZoneID 1 and UserCount 5, got ZoneID %d and UserCount %d", result[0].ZoneID, result[0].UserCount)
-				}
-				if result[1].ZoneID != 2 || result[1].UserCount != 10 {
-					t.Errorf("expected ZoneID 2 and UserCount 10, got ZoneID %d and UserCount %d", result[1].ZoneID, result[1].UserCount)
-				}
+				require.NotNil(t, result)
+				require.Len(t, result, 2)
+
+				require.Equal(t, 1, result[0].ZoneID)
+				require.Equal(t, 5, result[0].UserCount)
+
+				require.Equal(t, 2, result[1].ZoneID)
+				require.Equal(t, 10, result[1].UserCount)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info log, got none")
-					return
-				}
+				require.Len(t, infoLogs, 2, "should log attempt and success")
 			},
 		},
 		{
@@ -351,50 +316,44 @@ func TestService_GetStats(t *testing.T) {
 			wantErr: true,
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 1 {
-					t.Error("expected 1 info log, got none")
-					return
-				}
+				require.Len(t, infoLogs, 1, "should log attempt")
 
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log, got none")
-					return
-				}
-
-				expectedMsg := "failed to get stat repository error"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected error message '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log repository error")
+				require.Equal(t, "failed to get stat repository error", errorLogs[0].msg)
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			mockLog := &mockLogger{}
 			service := &Service{
 				coordinates: tt.coordinates(),
-				logger:      &mockLogger{},
+				logger:      mockLog,
 			}
 
 			ctx := context.Background()
 
 			zones, err := service.GetStats(ctx, tt.timeWindowMinutes)
+
+			if tt.validateLogs != nil {
+				tt.validateLogs(t, mockLog)
+			}
+
 			if tt.wantErr {
-				if err == nil {
-					t.Errorf("expected error, got nil")
+				require.Error(t, err, "expected error but got none")
+				if tt.errType != nil {
+					require.True(t, tt.errType(err), "wrong error type: %v", err)
 				}
+				require.Nil(t, zones, "zones should be nil on error")
 				return
 			}
 
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-				return
-			}
-
-			if zones == nil {
-				t.Fatalf("expected zones, got nil")
-			}
+			require.NoError(t, err, "unexpected error: %v", err)
+			require.NotNil(t, zones, "expected zones, got nil")
 
 			if tt.validateResult != nil {
 				tt.validateResult(t, zones)

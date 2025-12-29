@@ -6,6 +6,8 @@ import (
 	"errors"
 	"red_collar/internal/domain"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestService_CreateIncident(t *testing.T) {
@@ -14,6 +16,7 @@ func TestService_CreateIncident(t *testing.T) {
 		input          *CreateIncidentRequestInput
 		incidents      func() *mockIncidentsRepository
 		wantErr        bool
+		errType        func(err error) bool
 		validateResult func(t *testing.T, result *domain.Incident)
 		validateLogs   func(t *testing.T, logger *mockLogger)
 	}{
@@ -24,17 +27,14 @@ func TestService_CreateIncident(t *testing.T) {
 				return &mockIncidentsRepository{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				return errors.As(err, &appErr) && appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log, got none")
-					return
-				}
-
-				expectedMsg := "create incident request validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected error message '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should have exactly 1 error log")
+				require.Equal(t, "create incident request validation failed", errorLogs[0].msg)
 			},
 		},
 		{
@@ -49,17 +49,14 @@ func TestService_CreateIncident(t *testing.T) {
 				return &mockIncidentsRepository{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				return errors.As(err, &appErr) && appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log, got none")
-					return
-				}
-
-				expectedMsg := "create incident request validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected error message '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1)
+				require.Equal(t, "create incident request validation failed", errorLogs[0].msg)
 			},
 		},
 		{
@@ -74,17 +71,14 @@ func TestService_CreateIncident(t *testing.T) {
 				return &mockIncidentsRepository{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				return errors.As(err, &appErr) && appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log, got none")
-					return
-				}
-
-				expectedMsg := "create incident request validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected error message '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1)
+				require.Equal(t, "create incident request validation failed", errorLogs[0].msg)
 			},
 		},
 		{
@@ -103,22 +97,13 @@ func TestService_CreateIncident(t *testing.T) {
 				}
 			},
 			validateResult: func(t *testing.T, result *domain.Incident) {
-				if result.Active != true {
-					t.Error("expected true, got false")
-					return
-				}
-
-				if result.Description != "without description" {
-					t.Errorf("expected 'without description', got '%s'", result.Description)
-					return
-				}
+				require.NotNil(t, result)
+				require.True(t, result.Active)
+				require.Equal(t, "without description", result.Description)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info logs, got none")
-					return
-				}
+				require.Len(t, infoLogs, 2, "should log attempt and success")
 			},
 		},
 		{
@@ -139,42 +124,17 @@ func TestService_CreateIncident(t *testing.T) {
 				}
 			},
 			validateResult: func(t *testing.T, result *domain.Incident) {
-				if result.Active != true {
-					t.Error("expected true, got false")
-					return
-				}
-
-				if result.Description != "something" {
-					t.Errorf("expected 'something', got '%s'", result.Description)
-					return
-				}
-
-				if result.Title != "Color" {
-					t.Errorf("expected title 'Color', got '%s'", result.Title)
-					return
-				}
-
-				if result.Lat != -20 {
-					t.Errorf("expected lat -20, got '%f'", result.Lat)
-					return
-				}
-
-				if result.Long != 100 {
-					t.Errorf("expected long 100, got '%f'", result.Long)
-					return
-				}
-
-				if result.Radius != 55 {
-					t.Errorf("expected radius 55, got '%d'", result.Radius)
-					return
-				}
+				require.NotNil(t, result)
+				require.True(t, result.Active)
+				require.Equal(t, "something", result.Description)
+				require.Equal(t, "Color", result.Title)
+				require.Equal(t, -20.0, result.Lat)
+				require.Equal(t, 100.0, result.Long)
+				require.Equal(t, 55, result.Radius)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info logs, got none")
-					return
-				}
+				require.Len(t, infoLogs, 2, "should log attempt and success")
 			},
 		},
 		{
@@ -194,22 +154,17 @@ func TestService_CreateIncident(t *testing.T) {
 			},
 			wantErr: true,
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log, got none")
-					return
-				}
-
-				expectedMsg := "create incident request repository error"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected error message '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log repository error")
+				require.Equal(t, "create incident request repository error", errorLogs[0].msg)
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx := context.Background()
 			mockLog := &mockLogger{}
 
@@ -225,20 +180,16 @@ func TestService_CreateIncident(t *testing.T) {
 			}
 
 			if tt.wantErr {
-				if err == nil {
-					t.Error("expected error, got nil")
+				require.Error(t, err, "expected error but got none")
+				if tt.errType != nil {
+					require.True(t, tt.errType(err), "wrong error type: %v", err)
 				}
+				require.Nil(t, result, "result should be nil on error")
 				return
 			}
 
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-				return
-			}
-
-			if result == nil {
-				t.Fatal("expected result, got nil")
-			}
+			require.NoError(t, err, "unexpected error: %v", err)
+			require.NotNil(t, result, "expected result, got nil")
 
 			if tt.validateResult != nil {
 				tt.validateResult(t, result)
@@ -253,6 +204,7 @@ func TestService_GetIncidentByID(t *testing.T) {
 		rawID          string
 		incidents      func() *mockIncidentsRepository
 		wantErr        bool
+		errType        func(err error) bool
 		cache          func() *mockCache
 		validateResult func(t *testing.T, result *domain.Incident)
 		validateLogs   func(t *testing.T, logger *mockLogger)
@@ -267,17 +219,14 @@ func TestService_GetIncidentByID(t *testing.T) {
 				return &mockCache{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				return errors.As(err, &appErr) && appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log, got none")
-					return
-				}
-
-				expectedMsg := "get incident by id validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected error message '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should have exactly 1 error log")
+				require.Equal(t, "get incident by id validation failed", errorLogs[0].msg)
 			},
 		},
 		{
@@ -293,34 +242,20 @@ func TestService_GetIncidentByID(t *testing.T) {
 							ID:    1,
 							Title: "Color",
 						}
-
 						dataByte, _ := json.Marshal(incident)
 						return dataByte, nil
 					},
 				}
 			},
 			validateResult: func(t *testing.T, result *domain.Incident) {
-				if result.ID != 1 {
-					t.Errorf("expected id = 1, got '%d'", result.ID)
-					return
-				}
-
-				if result.Title != "Color" {
-					t.Errorf("expected 'Color', got '%s'", result.Description)
-					return
-				}
+				require.NotNil(t, result)
+				require.Equal(t, 1, result.ID)
+				require.Equal(t, "Color", result.Title)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info log")
-					return
-				}
-
-				expectedMsg := "successfully got from cache"
-				if infoLogs[1].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				require.Len(t, infoLogs, 2, "should log attempt and cache hit")
+				require.Equal(t, "successfully got from cache", infoLogs[1].msg)
 			},
 		},
 		{
@@ -345,27 +280,14 @@ func TestService_GetIncidentByID(t *testing.T) {
 				}
 			},
 			validateResult: func(t *testing.T, result *domain.Incident) {
-				if result.ID != 1 {
-					t.Errorf("expected id = 1, got '%d'", result.ID)
-					return
-				}
-
-				if result.Title != "Color" {
-					t.Errorf("expected 'Color', got '%s'", result.Description)
-					return
-				}
+				require.NotNil(t, result)
+				require.Equal(t, 1, result.ID)
+				require.Equal(t, "Color", result.Title)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 3 {
-					t.Error("expected 3 info log")
-					return
-				}
-
-				expectedMsg := "successfully saved to cache"
-				if infoLogs[1].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				require.Len(t, infoLogs, 3, "should log attempt, save to cache, and success")
+				require.Equal(t, "successfully saved to cache", infoLogs[1].msg)
 			},
 		},
 		{
@@ -393,34 +315,17 @@ func TestService_GetIncidentByID(t *testing.T) {
 				}
 			},
 			validateResult: func(t *testing.T, result *domain.Incident) {
-				if result.ID != 1 {
-					t.Errorf("expected id = 1, got '%d'", result.ID)
-					return
-				}
-
-				if result.Title != "Color" {
-					t.Errorf("expected 'Color', got '%s'", result.Description)
-					return
-				}
+				require.NotNil(t, result)
+				require.Equal(t, 1, result.ID)
+				require.Equal(t, "Color", result.Title)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "failed to save incident to cache"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-					return
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log cache save error")
+				require.Equal(t, "failed to save incident to cache", errorLogs[0].msg)
 
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info log")
-					return
-				}
+				require.Len(t, infoLogs, 2, "should log attempt and success")
 			},
 		},
 		{
@@ -442,23 +347,12 @@ func TestService_GetIncidentByID(t *testing.T) {
 			},
 			wantErr: true,
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "get by id incident repository error"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-					return
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log repository error")
+				require.Equal(t, "get by id incident repository error", errorLogs[0].msg)
 
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 1 {
-					t.Error("expected 1 info log")
-					return
-				}
+				require.Len(t, infoLogs, 1, "should log attempt")
 			},
 		},
 		{
@@ -486,34 +380,17 @@ func TestService_GetIncidentByID(t *testing.T) {
 				}
 			},
 			validateResult: func(t *testing.T, result *domain.Incident) {
-				if result.ID != 1 {
-					t.Errorf("expected id = 1, got '%d'", result.ID)
-					return
-				}
-
-				if result.Title != "Color" {
-					t.Errorf("expected 'Color', got '%s'", result.Description)
-					return
-				}
+				require.NotNil(t, result)
+				require.Equal(t, 1, result.ID)
+				require.Equal(t, "Color", result.Title)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				warnsLogs := logger.GetWarnLogs()
-				if len(warnsLogs) != 1 {
-					t.Error("expected 1 warn log")
-					return
-				}
-
-				expectedMsg := "failed to get incident from cache"
-				if warnsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-					return
-				}
+				warnLogs := logger.GetWarnLogs()
+				require.Len(t, warnLogs, 1, "should log cache get warning")
+				require.Equal(t, "failed to get incident from cache", warnLogs[0].msg)
 
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 3 {
-					t.Error("expected 3 info log")
-					return
-				}
+				require.Len(t, infoLogs, 3, "should log attempt, save to cache, and success")
 			},
 		},
 		{
@@ -541,40 +418,25 @@ func TestService_GetIncidentByID(t *testing.T) {
 				}
 			},
 			validateResult: func(t *testing.T, result *domain.Incident) {
-				if result.ID != 1 {
-					t.Errorf("expected id = 1, got '%d'", result.ID)
-					return
-				}
-
-				if result.Title != "Color" {
-					t.Errorf("expected 'Color', got '%s'", result.Description)
-					return
-				}
+				require.NotNil(t, result)
+				require.Equal(t, 1, result.ID)
+				require.Equal(t, "Color", result.Title)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "failed to unmarshal incident from cache"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-					return
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log unmarshal error")
+				require.Equal(t, "failed to unmarshal incident from cache", errorLogs[0].msg)
 
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 3 {
-					t.Error("expected 3 info log")
-					return
-				}
+				require.Len(t, infoLogs, 3, "should log attempt, save to cache, and success")
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx := context.Background()
 			mockLog := &mockLogger{}
 
@@ -591,20 +453,16 @@ func TestService_GetIncidentByID(t *testing.T) {
 			}
 
 			if tt.wantErr {
-				if err == nil {
-					t.Error("expected error, got nil")
+				require.Error(t, err, "expected error but got none")
+				if tt.errType != nil {
+					require.True(t, tt.errType(err), "wrong error type: %v", err)
 				}
+				require.Nil(t, result, "result should be nil on error")
 				return
 			}
 
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-				return
-			}
-
-			if result == nil {
-				t.Fatal("expected result, got nil")
-			}
+			require.NoError(t, err, "unexpected error: %v", err)
+			require.NotNil(t, result, "expected result, got nil")
 
 			if tt.validateResult != nil {
 				tt.validateResult(t, result)
@@ -620,6 +478,7 @@ func TestService_PaginateIncident(t *testing.T) {
 		rawPage        string
 		incidents      func() *mockIncidentsRepository
 		wantErr        bool
+		errType        func(err error) bool
 		validateResult func(t *testing.T, result *PaginateIncidentsOutput)
 		validateLogs   func(t *testing.T, logger *mockLogger)
 	}{
@@ -630,17 +489,14 @@ func TestService_PaginateIncident(t *testing.T) {
 				return &mockIncidentsRepository{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				return errors.As(err, &appErr) && appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "paginate incidents validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should have exactly 1 error log")
+				require.Equal(t, "paginate incidents validation failed", errorLogs[0].msg)
 			},
 		},
 		{
@@ -651,17 +507,14 @@ func TestService_PaginateIncident(t *testing.T) {
 				return &mockIncidentsRepository{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				return errors.As(err, &appErr) && appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "paginate incidents validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1)
+				require.Equal(t, "paginate incidents validation failed", errorLogs[0].msg)
 			},
 		},
 		{
@@ -678,21 +531,11 @@ func TestService_PaginateIncident(t *testing.T) {
 			wantErr: true,
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 1 {
-					t.Error("expected 1 info log")
-					return
-				}
+				require.Len(t, infoLogs, 1, "should log attempt")
 
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "paginate repository error"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log repository error")
+				require.Equal(t, "paginate repository error", errorLogs[0].msg)
 			},
 		},
 		{
@@ -711,38 +554,32 @@ func TestService_PaginateIncident(t *testing.T) {
 				}
 			},
 			validateResult: func(t *testing.T, result *PaginateIncidentsOutput) {
-				if result.Incidents[0].ID != 1 || result.Incidents[0].Title != "Color1" {
-					t.Error("expected other result")
-					return
-				}
+				require.NotNil(t, result)
+				require.NotNil(t, result.Incidents)
+				require.Len(t, result.Incidents, 2)
 
-				if result.Incidents[1].ID != 2 || result.Incidents[1].Title != "Color2" {
-					t.Error("expected other result")
-					return
-				}
+				require.Equal(t, 1, result.Incidents[0].ID)
+				require.Equal(t, "Color1", result.Incidents[0].Title)
 
-				if result.Pagination.Total != 2 {
-					t.Error("expected total = 2")
-					return
-				}
+				require.Equal(t, 2, result.Incidents[1].ID)
+				require.Equal(t, "Color2", result.Incidents[1].Title)
 
-				if result.Pagination.Limit != 5 || result.Pagination.Page != 1 {
-					t.Error("expected limit = 5 and page = 1")
-					return
-				}
+				require.NotNil(t, result.Pagination)
+				require.Equal(t, 2, result.Pagination.Total)
+				require.Equal(t, 5, result.Pagination.Limit)
+				require.Equal(t, 1, result.Pagination.Page)
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info log")
-					return
-				}
+				require.Len(t, infoLogs, 2, "should log attempt and success")
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx := context.Background()
 			mockLog := &mockLogger{}
 
@@ -758,21 +595,16 @@ func TestService_PaginateIncident(t *testing.T) {
 			}
 
 			if tt.wantErr {
-				if err == nil {
-					t.Error("expected error, got nil")
+				require.Error(t, err, "expected error but got none")
+				if tt.errType != nil {
+					require.True(t, tt.errType(err), "wrong error type: %v", err)
 				}
+				require.Nil(t, result, "result should be nil on error")
 				return
 			}
 
-			if err != nil {
-				t.Errorf("unexpected error: %v", err)
-				return
-			}
-
-			if result == nil {
-				t.Fatal("expected result, got nil")
-				return
-			}
+			require.NoError(t, err, "unexpected error: %v", err)
+			require.NotNil(t, result, "expected result, got nil")
 
 			if tt.validateResult != nil {
 				tt.validateResult(t, result)
@@ -788,6 +620,7 @@ func TestService_DeleteIncident(t *testing.T) {
 		incidents    func() *mockIncidentsRepository
 		cache        func() *mockCache
 		wantErr      bool
+		errType      func(err error) bool
 		validateLogs func(t *testing.T, logger *mockLogger)
 	}{
 		{
@@ -800,17 +633,14 @@ func TestService_DeleteIncident(t *testing.T) {
 				return &mockCache{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				return errors.As(err, &appErr) && appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "delete incident validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should have exactly 1 error log")
+				require.Equal(t, "delete incident validation failed", errorLogs[0].msg)
 			},
 		},
 		{
@@ -833,21 +663,11 @@ func TestService_DeleteIncident(t *testing.T) {
 			wantErr: true,
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info log")
-					return
-				}
+				require.Len(t, infoLogs, 2, "should log attempt")
 
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "delete repository error"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log repository error")
+				require.Equal(t, "delete repository error", errorLogs[0].msg)
 			},
 		},
 		{
@@ -869,21 +689,11 @@ func TestService_DeleteIncident(t *testing.T) {
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info log")
-					return
-				}
+				require.Len(t, infoLogs, 2, "should log attempt and success")
 
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "failed to delete incident from cache"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log cache delete error")
+				require.Equal(t, "failed to delete incident from cache", errorLogs[0].msg)
 			},
 		},
 		{
@@ -905,16 +715,17 @@ func TestService_DeleteIncident(t *testing.T) {
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 3 {
-					t.Error("expected 3 info log")
-					return
-				}
+				require.Len(t, infoLogs, 3, "should log attempt, cache delete, and success")
+				errorLogs := logger.GetErrorLogs()
+				require.Empty(t, errorLogs, "should not have errors")
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx := context.Background()
 			mockLog := &mockLogger{}
 
@@ -931,16 +742,14 @@ func TestService_DeleteIncident(t *testing.T) {
 			}
 
 			if tt.wantErr {
-				if err == nil {
-					t.Error("expected error, got nil")
+				require.Error(t, err, "expected error but got none")
+				if tt.errType != nil {
+					require.True(t, tt.errType(err), "wrong error type: %v", err)
 				}
 				return
 			}
 
-			if err != nil {
-				t.Error("unexpected error")
-				return
-			}
+			require.NoError(t, err, "unexpected error: %v", err)
 		})
 	}
 }
@@ -952,6 +761,7 @@ func TestService_FullUpdateIncident(t *testing.T) {
 		incidents      func() *mockIncidentsRepository
 		cache          func() *mockCache
 		wantErr        bool
+		errType        func(err error) bool
 		validateResult func(t *testing.T, result *domain.Incident)
 		validateLogs   func(t *testing.T, logger *mockLogger)
 	}{
@@ -967,17 +777,14 @@ func TestService_FullUpdateIncident(t *testing.T) {
 				return &mockCache{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				return errors.As(err, &appErr) && appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "full update incident request validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should have exactly 1 error log")
+				require.Equal(t, "full update incident request validation failed", errorLogs[0].msg)
 			},
 		},
 		{
@@ -992,21 +799,18 @@ func TestService_FullUpdateIncident(t *testing.T) {
 				return &mockCache{}
 			},
 			wantErr: true,
+			errType: func(err error) bool {
+				var appErr *domain.AppError
+				return errors.As(err, &appErr) && appErr.Code == domain.CodeInvalidValidation
+			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "full update incident request validation failed"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1)
+				require.Equal(t, "full update incident request validation failed", errorLogs[0].msg)
 			},
 		},
 		{
-			name: "repostitory error",
+			name: "repository error",
 			input: &FullUpdateIncidentRequestInput{
 				ID:     "1",
 				Title:  "Color",
@@ -1027,21 +831,11 @@ func TestService_FullUpdateIncident(t *testing.T) {
 			wantErr: true,
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 1 {
-					t.Error("expected 1 info log")
-					return
-				}
+				require.Len(t, infoLogs, 1, "should log attempt")
 
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "full update incident request repository error"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log repository error")
+				require.Equal(t, "full update incident request repository error", errorLogs[0].msg)
 			},
 		},
 		{
@@ -1069,21 +863,11 @@ func TestService_FullUpdateIncident(t *testing.T) {
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 2 {
-					t.Error("expected 2 info log")
-					return
-				}
+				require.Len(t, infoLogs, 2, "should log attempt and success")
 
-				errorsLogs := logger.GetErrorLogs()
-				if len(errorsLogs) != 1 {
-					t.Error("expected 1 error log")
-					return
-				}
-
-				expectedMsg := "failed to delete incident from cache"
-				if errorsLogs[0].msg != expectedMsg {
-					t.Errorf("expected msg '%s' not found", expectedMsg)
-				}
+				errorLogs := logger.GetErrorLogs()
+				require.Len(t, errorLogs, 1, "should log cache delete error")
+				require.Equal(t, "failed to delete incident from cache", errorLogs[0].msg)
 			},
 		},
 		{
@@ -1111,16 +895,17 @@ func TestService_FullUpdateIncident(t *testing.T) {
 			},
 			validateLogs: func(t *testing.T, logger *mockLogger) {
 				infoLogs := logger.GetInfoLogs()
-				if len(infoLogs) != 3 {
-					t.Error("expected 3 info log")
-					return
-				}
+				require.Len(t, infoLogs, 3, "should log attempt, cache delete, and success")
+				errorLogs := logger.GetErrorLogs()
+				require.Empty(t, errorLogs, "should not have errors")
 			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ctx := context.Background()
 			mockLog := &mockLogger{}
 
@@ -1137,21 +922,16 @@ func TestService_FullUpdateIncident(t *testing.T) {
 			}
 
 			if tt.wantErr {
-				if err == nil {
-					t.Error("expected error, got nil")
+				require.Error(t, err, "expected error but got none")
+				if tt.errType != nil {
+					require.True(t, tt.errType(err), "wrong error type: %v", err)
 				}
+				require.Nil(t, result, "result should be nil on error")
 				return
 			}
 
-			if err != nil {
-				t.Error("unexpected error")
-				return
-			}
-
-			if result == nil {
-				t.Fatal("expected result, got nil")
-				return
-			}
+			require.NoError(t, err, "unexpected error: %v", err)
+			require.NotNil(t, result, "expected result, got nil")
 
 			if tt.validateResult != nil {
 				tt.validateResult(t, result)
