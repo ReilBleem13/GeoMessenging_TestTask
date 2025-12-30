@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"red_collar/internal/config"
 	"red_collar/internal/domain"
@@ -62,6 +61,5 @@ func main() {
 	logging.L(ctx).Info("Webhook server starting", logging.StringAttr("addr", ":9090"))
 	if err := http.ListenAndServe(":9090", nil); err != nil {
 		logging.L(ctx).Error("Webhook server failed", logging.ErrAttr(err))
-		log.Fatal(err)
 	}
 }

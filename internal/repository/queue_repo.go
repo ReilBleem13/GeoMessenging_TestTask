@@ -114,7 +114,7 @@ func (q *Queue) ProcessDelayedTasks(ctx context.Context) error {
 
 // Получение таска из очереди
 func (q *Queue) Dequeue(ctx context.Context) (*WebhookTask, error) {
-	result, err := q.client.BRPop(ctx, 0, webhookQueueKey).Result()
+	result, err := q.client.BRPop(ctx, 1*time.Second, webhookQueueKey).Result()
 	if err != nil {
 		if err == redis.Nil {
 			return nil, nil

@@ -46,7 +46,9 @@ func NewWebhookWorker(queue *repository.Queue, webhookURL string, logger service
 	}
 }
 
-func (w *WebhookWorker) Start(ctx context.Context) {
+func (w *WebhookWorker) Start(ctx context.Context) <-chan struct{} {
+	done := make(chan struct{})
+
 	w.logger.Info("webhook worker started", logging.StringAttr("webhook_url", w.webhookURL))
 
 	go func() {
@@ -65,14 +67,23 @@ func (w *WebhookWorker) Start(ctx context.Context) {
 		}
 	}()
 
-	for {
-		select {
-		case <-ctx.Done():
-			w.logger.Info("webhook worker stopping...")
-			return
-		default:
+	go func() {
+		defer close(done)
+
+		for {
+			select {
+			case <-ctx.Done():
+				w.logger.Info("webhook worker stopping...")
+				return
+			default:
+			}
+
 			data, err := w.queue.Dequeue(ctx)
 			if err != nil {
+				if ctx.Err() != nil {
+					w.logger.Info("webhook worker stopping...")
+					return
+				}
 				w.logger.Error("failed to dequeue location check", logging.ErrAttr(err))
 				time.Sleep(1 * time.Second)
 				continue
@@ -99,7 +110,8 @@ func (w *WebhookWorker) Start(ctx context.Context) {
 				logging.IntAttr("check_id", data.LocationCheck.ID),
 			)
 		}
-	}
+	}()
+	return done
 }
 
 func (w *WebhookWorker) handleWebhookError(ctx context.Context, task *repository.WebhookTask, err error) {
