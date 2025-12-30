@@ -9,6 +9,16 @@ import (
 	"github.com/theartofdevel/logging"
 )
 
+// @Summary      Проверка координат
+// @Description  Проверяет, находится ли пользователь в опасной зоне. Если да, отправляет webhook-уведомление.
+// @Tags         location
+// @Accept       json
+// @Produce      json
+// @Param        coordinates  body      CheckJSON  true  "Координаты пользователя"
+// @Success      200          {object}  domain.LocationCheck
+// @Failure      400          {object}  badRequestErrorResponse
+// @Failure      500          {object}  internalServerErrorResponse
+// @Router       /location/check [post]
 func (h *Handler) handleCheckCoordinates(w http.ResponseWriter, r *http.Request) {
 	var req CheckJSON
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -31,6 +41,14 @@ func (h *Handler) handleCheckCoordinates(w http.ResponseWriter, r *http.Request)
 	writeJSON(w, 200, out)
 }
 
+// @Summary      Статистика по зонам
+// @Description  Получает статистику по количеству пользователей в каждой зоне за указанный временной период
+// @Tags         incidents
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  statsRequestResponse
+// @Failure      500  {object}  internalServerErrorResponse
+// @Router       /incidents/stats [get]
 func (h *Handler) handleStats(w http.ResponseWriter, r *http.Request) {
 	out, err := h.svc.GetStats(r.Context(), h.statsTimeWindowMins)
 	if err != nil {

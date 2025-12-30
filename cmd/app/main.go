@@ -19,7 +19,22 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
 	"github.com/theartofdevel/logging"
+
+	_ "red_collar/docs" // Swagger documentation
 )
+
+// @title           Geomessanging Service API
+// @version         1.0
+// @description     Сервис для управления геолокационными инцидентами и проверки координат пользователей на попадание в опасные зоны.
+// @termsOfService  http://swagger.io/terms/
+
+// @host      localhost:8080
+// @BasePath  /api/v1
+
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name X-API-Key
+// @description API Key для аутентификации
 
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
@@ -75,7 +90,7 @@ func main() {
 	webhookWorker := worker.NewWebhookWorker(queue, cfg.Webhook.URL, logger)
 	go webhookWorker.Start(ctx)
 
-	httpMux := handler.NewRouter(svc, logger, cfg.App.APIKey, cfg.App.StatsTimeWindowMins)
+	httpMux := handler.NewRouter(svc, logger, cfg)
 	httpAddr := ":" + cfg.App.Port
 	httpServer := handler.NewServer(httpAddr, httpMux)
 

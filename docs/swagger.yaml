@@ -1,0 +1,445 @@
+basePath: /api/v1
+definitions:
+  domain.Incident:
+    properties:
+      active:
+        type: boolean
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      lat:
+        type: number
+      long:
+        type: number
+      radius_m:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  domain.LocationCheck:
+    properties:
+      checked_at:
+        type: string
+      id:
+        type: integer
+      in_danger_zone:
+        type: boolean
+      lat:
+        type: number
+      long:
+        type: number
+      nearest_id:
+        type: integer
+      user_id:
+        type: string
+    type: object
+  domain.ZoneStat:
+    properties:
+      user_count:
+        type: integer
+      zone_id:
+        type: integer
+    type: object
+  handler.CheckJSON:
+    description: Координаты пользователя для проверки
+    properties:
+      lat:
+        type: number
+      long:
+        type: number
+      used_id:
+        type: string
+    type: object
+  handler.IncidentJSON:
+    description: Данные инцидента (опасной зоны)
+    properties:
+      active:
+        type: boolean
+      description:
+        type: string
+      lat:
+        type: number
+      long:
+        type: number
+      radius_m:
+        type: integer
+      title:
+        type: string
+    type: object
+  handler.badRequestErrorResponse:
+    description: Ошибка валидации или некорректного запроса
+    properties:
+      error:
+        properties:
+          code:
+            example: INVALID_VALIDATION
+            type: string
+          message:
+            example: lat or long is invalid
+            type: string
+        type: object
+    type: object
+  handler.badRequestErrorResponseGetByID:
+    description: Ошибка валидации или некорректного запроса
+    properties:
+      error:
+        properties:
+          code:
+            example: INVALID_VALIDATION
+            type: string
+          message:
+            example: invalid id format, must be integer
+            type: string
+        type: object
+    type: object
+  handler.badRequestErrorResponsePaginate:
+    description: Ошибка валидации или некорректного запроса
+    properties:
+      error:
+        properties:
+          code:
+            example: INVALID_VALIDATION
+            type: string
+          message:
+            example: invalid limit format, must be integer
+            type: string
+        type: object
+    type: object
+  handler.incedentRequestResponse:
+    properties:
+      Incedent:
+        $ref: '#/definitions/domain.Incident'
+    type: object
+  handler.internalServerErrorResponse:
+    description: Внутренняя ошибка сервера
+    properties:
+      error:
+        properties:
+          code:
+            example: SERVER_ERROR
+            type: string
+          message:
+            example: internal server error
+            type: string
+        type: object
+    type: object
+  handler.notFoundErrorResponse:
+    description: Ошибка получения, сущность не найдена
+    properties:
+      error:
+        properties:
+          code:
+            example: NOT_FOUND
+            type: string
+          message:
+            example: incident is not exists
+            type: string
+        type: object
+    type: object
+  handler.statsRequestResponse:
+    properties:
+      Stats:
+        items:
+          $ref: '#/definitions/domain.ZoneStat'
+        type: array
+    type: object
+  handler.unauthorizedErrorResponse:
+    description: Ошибка аутентификации
+    properties:
+      error:
+        properties:
+          code:
+            example: UNAUTHORIZED
+            type: string
+          message:
+            example: invalid api key
+            type: string
+        type: object
+    type: object
+  service.PaginateIncidentsOutput:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.Incident'
+        type: array
+      pagination:
+        $ref: '#/definitions/service.Pagination'
+    type: object
+  service.Pagination:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
+      pages:
+        type: integer
+      total:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Сервис для управления геолокационными инцидентами и проверки координат
+    пользователей на попадание в опасные зоны.
+  termsOfService: http://swagger.io/terms/
+  title: Geomessanging Service API
+  version: "1.0"
+paths:
+  /incidents:
+    get:
+      consumes:
+      - application/json
+      description: Получает список инцидентов с пагинацией
+      parameters:
+      - default: 1
+        description: Номер страницы
+        in: query
+        name: page
+        type: integer
+      - default: 5
+        description: Количество на странице
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.PaginateIncidentsOutput'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.badRequestErrorResponsePaginate'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.unauthorizedErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение списка инцидентов
+      tags:
+      - incidents
+    post:
+      consumes:
+      - application/json
+      description: Создает новую опасную зону с географическими координатами
+      parameters:
+      - description: Данные инцидента
+        in: body
+        name: incident
+        required: true
+        schema:
+          $ref: '#/definitions/handler.IncidentJSON'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.incedentRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.badRequestErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.unauthorizedErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.internalServerErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Создание инцидента
+      tags:
+      - incidents
+  /incidents/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет инцидент по его идентификатору
+      parameters:
+      - description: ID инцидента
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.badRequestErrorResponseGetByID'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.unauthorizedErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.notFoundErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Удаление инцидента
+      tags:
+      - incidents
+    get:
+      consumes:
+      - application/json
+      description: Получает информацию об инциденте по его идентификатору
+      parameters:
+      - description: ID инцидента
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.incedentRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.badRequestErrorResponseGetByID'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.unauthorizedErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.notFoundErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Получение инцидента по ID
+      tags:
+      - incidents
+    put:
+      consumes:
+      - application/json
+      description: Полностью обновляет данные инцидента
+      parameters:
+      - description: ID инцидента
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Обновленные данные инцидента
+        in: body
+        name: incident
+        required: true
+        schema:
+          $ref: '#/definitions/handler.IncidentJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.incedentRequestResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.badRequestErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/handler.unauthorizedErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/handler.notFoundErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Обновление инцидента
+      tags:
+      - incidents
+  /incidents/stats:
+    get:
+      consumes:
+      - application/json
+      description: Получает статистику по количеству пользователей в каждой зоне за
+        указанный временной период
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.statsRequestResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.internalServerErrorResponse'
+      summary: Статистика по зонам
+      tags:
+      - incidents
+  /location/check:
+    post:
+      consumes:
+      - application/json
+      description: Проверяет, находится ли пользователь в опасной зоне. Если да, отправляет
+        webhook-уведомление.
+      parameters:
+      - description: Координаты пользователя
+        in: body
+        name: coordinates
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CheckJSON'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.LocationCheck'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/handler.badRequestErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/handler.internalServerErrorResponse'
+      summary: Проверка координат
+      tags:
+      - location
+  /system/health:
+    get:
+      consumes:
+      - application/json
+      description: Проверка работоспособности сервиса
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health Check
+      tags:
+      - system
+securityDefinitions:
+  ApiKeyAuth:
+    description: API Key для аутентификации
+    in: header
+    name: X-API-Key
+    type: apiKey
+swagger: "2.0"

@@ -9,7 +9,18 @@ import (
 	"github.com/theartofdevel/logging"
 )
 
-// POST /api/v1/incidents
+// @Summary      Создание инцидента
+// @Description  Создает новую опасную зону с географическими координатами
+// @Tags         incidents
+// @Accept       json
+// @Produce      json
+// @Param        incident  body      IncidentJSON  true  "Данные инцидента"
+// @Success      201       {object}  incedentRequestResponse
+// @Failure      400       {object}  badRequestErrorResponse
+// @Failure      401       {object}  unauthorizedErrorResponse
+// @Failure      500       {object}  internalServerErrorResponse
+// @Security     ApiKeyAuth
+// @Router       /incidents [post]
 func (h *Handler) handleCreateIncident(w http.ResponseWriter, r *http.Request) {
 	var req IncidentJSON
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -39,7 +50,18 @@ func (h *Handler) handleCreateIncident(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, resp)
 }
 
-// GET /api/v1/incidents
+// @Summary      Получение списка инцидентов
+// @Description  Получает список инцидентов с пагинацией
+// @Tags         incidents
+// @Accept       json
+// @Produce      json
+// @Param        page   query     int  false  "Номер страницы"  default(1)
+// @Param        limit  query     int  false  "Количество на странице"  default(5)
+// @Success      200    {object}  service.PaginateIncidentsOutput
+// @Failure      400    {object}  badRequestErrorResponsePaginate
+// @Failure      401    {object}  unauthorizedErrorResponse
+// @Security     ApiKeyAuth
+// @Router       /incidents [get]
 func (h *Handler) handlePaginate(w http.ResponseWriter, r *http.Request) {
 	rawPage := r.URL.Query().Get("page")
 	rawlimit := r.URL.Query().Get("limit")
@@ -53,7 +75,18 @@ func (h *Handler) handlePaginate(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, out)
 }
 
-// GET /api/v1/incidents{id}
+// @Summary      Получение инцидента по ID
+// @Description  Получает информацию об инциденте по его идентификатору
+// @Tags         incidents
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID инцидента"
+// @Success      200  {object}  incedentRequestResponse
+// @Failure      400  {object}  badRequestErrorResponseGetByID
+// @Failure      401  {object}  unauthorizedErrorResponse
+// @Failure      404  {object}  notFoundErrorResponse
+// @Security     ApiKeyAuth
+// @Router       /incidents/{id} [get]
 func (h *Handler) handleGetIncidentByID(w http.ResponseWriter, r *http.Request) {
 	rawID := r.PathValue("id")
 
@@ -69,7 +102,19 @@ func (h *Handler) handleGetIncidentByID(w http.ResponseWriter, r *http.Request) 
 	writeJSON(w, http.StatusOK, resp)
 }
 
-// PUT /api/v1/incidents{id}
+// @Summary      Обновление инцидента
+// @Description  Полностью обновляет данные инцидента
+// @Tags         incidents
+// @Accept       json
+// @Produce      json
+// @Param        id        path      int           true  "ID инцидента"
+// @Param        incident  body      IncidentJSON  true  "Обновленные данные инцидента"
+// @Success      200       {object}  incedentRequestResponse
+// @Failure      400       {object}  badRequestErrorResponse
+// @Failure      401       {object}  unauthorizedErrorResponse
+// @Failure      404       {object}  notFoundErrorResponse
+// @Security     ApiKeyAuth
+// @Router       /incidents/{id} [put]
 func (h *Handler) handlePutIncident(w http.ResponseWriter, r *http.Request) {
 	rawID := r.PathValue("id")
 
@@ -102,7 +147,18 @@ func (h *Handler) handlePutIncident(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, resp)
 }
 
-// DELETE /api/v1/incidents{id}
+// @Summary      Удаление инцидента
+// @Description  Удаляет инцидент по его идентификатору
+// @Tags         incidents
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "ID инцидента"
+// @Success      200
+// @Failure      400  {object}  badRequestErrorResponseGetByID
+// @Failure      401  {object}  unauthorizedErrorResponse
+// @Failure      404  {object}  notFoundErrorResponse
+// @Security     ApiKeyAuth
+// @Router       /incidents/{id} [delete]
 func (h *Handler) handleDeleteIncident(w http.ResponseWriter, r *http.Request) {
 	rawID := r.PathValue("id")
 
