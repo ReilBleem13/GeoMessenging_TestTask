@@ -18,6 +18,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 	redisC "github.com/testcontainers/testcontainers-go/modules/redis"
 	"github.com/theartofdevel/logging"
 )
@@ -57,6 +58,7 @@ func setup() error {
 
 		rdContainer, err = redisC.Run(ctx,
 			"redis:7-alpine",
+			testcontainers.WithName("redis-test-webhook"),
 		)
 
 		if err != nil {

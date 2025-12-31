@@ -44,6 +44,7 @@ func setupTestDBContainer() (string, error) {
 			postgres.WithDatabase("testdb"),
 			postgres.WithUsername("testuser"),
 			postgres.WithPassword("testpass"),
+			testcontainers.WithName("postgres-test"),
 			testcontainers.WithWaitStrategy(
 				wait.ForLog("database system is ready to accept connections").
 					WithOccurrence(2).

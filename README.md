@@ -70,7 +70,7 @@ curl -X GET http://localhost:8080/api/v1/system/health
 ```bash
 curl -X POST http://localhost:8080/api/v1/incidents \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: your-secret-api-key" \
+  -H "X-API-Key: api_key" \
   -d '{
     "title": "Атака демогоргонов",
     "description": "Большое скопление монстров около парка",
@@ -103,7 +103,7 @@ curl -X POST http://localhost:8080/api/v1/incidents \
 **Request:**
 ```bash
 curl -X GET http://localhost:8080/api/v1/incidents/1 \
-  -H "X-API-Key: your-secret-api-key"
+  -H "X-API-Key: api_key"
 ```
 
 **Response:**
@@ -128,7 +128,7 @@ curl -X GET http://localhost:8080/api/v1/incidents/1 \
 **Request:**
 ```bash
 curl -X GET "http://localhost:8080/api/v1/incidents?page=1&limit=10" \
-  -H "X-API-Key: your-secret-api-key"
+  -H "X-API-Key: api_key"
 ```
 
 **Response:**
@@ -159,7 +159,7 @@ curl -X GET "http://localhost:8080/api/v1/incidents?page=1&limit=10" \
 ```bash
 curl -X PUT http://localhost:8080/api/v1/incidents/1 \
   -H "Content-Type: application/json" \
-  -H "X-API-Key: your-secret-api-key" \
+  -H "X-API-Key: api_key" \
   -d '{
     "title": "Атака демогоргонов (убили)",
     "description": "Вилл Байрес с нетрадиционной ориентацией зачистил зону",
@@ -192,7 +192,7 @@ curl -X PUT http://localhost:8080/api/v1/incidents/1 \
 **Request:**
 ```bash
 curl -X DELETE http://localhost:8080/api/v1/incidents/1 \
-  -H "X-API-Key: your-secret-api-key"
+  -H "X-API-Key: api_key"
 ```
 
 **Response:**
@@ -301,5 +301,5 @@ curl -X GET http://localhost:8080/api/v1/incidents/stats
 ### Запуск тестов
 
 1. Запуск юнит тестов - `make test-unit`
-2. Запуск интгерационных тестов - `make test-integration`
+2. Запуск интеграционных тестов - `make test-integration`
 3. Запуск всех тестов - `make test`

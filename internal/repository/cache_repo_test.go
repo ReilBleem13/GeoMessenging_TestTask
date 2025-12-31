@@ -13,6 +13,7 @@ import (
 
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/require"
+	"github.com/testcontainers/testcontainers-go"
 	redisC "github.com/testcontainers/testcontainers-go/modules/redis"
 )
 
@@ -36,6 +37,7 @@ func setupTestRD() error {
 
 		rdContainer, err = redisC.Run(ctx,
 			"redis:7-alpine",
+			testcontainers.WithName("redis-test"),
 		)
 
 		if err != nil {
